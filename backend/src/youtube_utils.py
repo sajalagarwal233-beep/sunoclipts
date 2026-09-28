@@ -301,7 +301,7 @@ def _fetch_video_info_with_youtube_data_api(url: str) -> Dict[str, Any]:
     config = get_config()
     api_key = config.resolve_youtube_data_api_key()
     if not api_key:
-        raise ValueError("Missing YOUTUBE_DATA_API_KEY and GOOGLE_API_KEY")
+        raise ValueError("Missing YOUTUBE_DATA_API_KEY")
 
     response = requests.get(
         YOUTUBE_DATA_API_URL,

@@ -49,7 +49,7 @@ SupoClip gives you the same core pipeline without the leash:
 
 ## Features
 
-- **AI clip selection** — an LLM (Gemini, GPT, Claude, or a local Ollama model) picks the 3–7 most clip-worthy segments from the transcript
+- **AI clip selection** — an LLM (Azure OpenAI, or a local Ollama model) picks the 3–7 most clip-worthy segments from the transcript
 - **Virality scoring** — every clip gets hook, engagement, value, and shareability scores
 - **Smart vertical cropping** — face detection keeps the speaker centered in the 9:16 frame
 - **Word-synced subtitles** — AssemblyAI word-level timestamps, custom fonts, caption templates with animation styles
@@ -60,7 +60,7 @@ SupoClip gives you the same core pipeline without the leash:
 
 ## Quick Start
 
-You need Docker, an [AssemblyAI](https://www.assemblyai.com/) API key for transcription, and one LLM provider key (Google, OpenAI, Anthropic, or a local Ollama).
+You need Docker, an [AssemblyAI](https://www.assemblyai.com/) API key for transcription, and Azure OpenAI credentials for clip analysis.
 
 ```bash
 git clone https://github.com/FujiwaraChoki/supoclip.git
@@ -71,8 +71,11 @@ Create a `.env` in the root with your keys:
 
 ```env
 ASSEMBLY_AI_API_KEY=your_assemblyai_api_key
-LLM=google-gla:gemini-3-flash-preview
-GOOGLE_API_KEY=your_google_api_key
+LLM=azure-openai:gpt-4.1-mini
+AZURE_OPENAI_API_KEY=your_azure_openai_api_key
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_API_VERSION=2025-04-01-preview
+AZURE_OPENAI_DEPLOYMENT=your-deployment-name
 ```
 
 Then start everything:

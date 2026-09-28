@@ -12,12 +12,14 @@ DOCKER_OLLAMA_BASE_URL = "http://host.docker.internal:11434/v1"
 
 class Config:
     def __init__(self):
-        self.openai_api_key = self._get_runtime_setting("OPENAI_API_KEY")
-        self.anthropic_api_key = self._get_runtime_setting("ANTHROPIC_API_KEY")
-        self.google_api_key = self._get_runtime_setting("GOOGLE_API_KEY")
         self.youtube_data_api_key = self._get_runtime_setting("YOUTUBE_DATA_API_KEY")
         self.ollama_base_url = self._get_runtime_setting("OLLAMA_BASE_URL")
         self.ollama_api_key = self._get_runtime_setting("OLLAMA_API_KEY")
+
+        self.azure_api_key = self._get_runtime_setting("AZURE_OPENAI_API_KEY")
+        self.azure_endpoint = self._get_runtime_setting("AZURE_OPENAI_ENDPOINT")
+        self.azure_api_version = self._get_runtime_setting("AZURE_OPENAI_API_VERSION") or "2025-04-01-preview"
+        self.azure_deployment = self._get_runtime_setting("AZURE_OPENAI_DEPLOYMENT")
 
         self.whisper_model = os.getenv("WHISPER_MODEL") or os.getenv("WHISPER_MODEL_SIZE", "base")
         self.transcription_provider = self._normalize_transcription_provider(
@@ -160,9 +162,10 @@ class Config:
         return {
             "ASSEMBLY_AI_API_KEY": self.assembly_ai_api_key,
             "LLM": self.llm,
-            "OPENAI_API_KEY": self.openai_api_key,
-            "GOOGLE_API_KEY": self.google_api_key,
-            "ANTHROPIC_API_KEY": self.anthropic_api_key,
+            "AZURE_OPENAI_API_KEY": self.azure_api_key,
+            "AZURE_OPENAI_ENDPOINT": self.azure_endpoint,
+            "AZURE_OPENAI_API_VERSION": self.azure_api_version,
+            "AZURE_OPENAI_DEPLOYMENT": self.azure_deployment,
             "OLLAMA_BASE_URL": self.ollama_base_url,
             "OLLAMA_API_KEY": self.ollama_api_key,
             "YOUTUBE_DATA_API_KEY": self.youtube_data_api_key,
@@ -218,7 +221,7 @@ class Config:
         return "yt_dlp"
 
     def resolve_youtube_data_api_key(self) -> str | None:
-        return self.youtube_data_api_key or self.google_api_key
+        return self.youtube_data_api_key
 
     def resolve_ollama_base_url(self) -> str:
         return self.ollama_base_url or self._default_ollama_base_url()
@@ -229,18 +232,26 @@ class Config:
             return DOCKER_OLLAMA_BASE_URL
         return LOCAL_OLLAMA_BASE_URL
 
+    @staticmethod
+    def _normalize_llm(value: str | None) -> str | None:
+        normalized = (value or "").strip().lower()
+        if not normalized:
+            return None
+        if ":" not in normalized:
+            return normalized
+        provider, _ = normalized.split(":", 1)
+        return provider.strip().lower() or normalized
+
     def _infer_default_llm(self) -> str:
         """
-        Infer a usable default model based on whichever API key is present.
-        Falls back to Google for backward compatibility.
+        Infer a usable Azure OpenAI model when Azure is configured.
         """
-        if self.google_api_key:
-            return "google-gla:gemini-3-flash-preview"
-        if self.openai_api_key:
-            return "openai:gpt-5.2"
-        if self.anthropic_api_key:
-            return "anthropic:claude-4-sonnet"
-        return "google-gla:gemini-3-flash-preview"
+        if self.azure_api_key and self.azure_endpoint:
+            deployment = self.azure_deployment or "gpt-4.1-mini"
+            return f"azure-openai:{deployment}"
+        if self.ollama_base_url:
+            return "ollama:gpt-oss:20b"
+        return "azure-openai:gpt-4.1-mini"
 
 
 def get_config() -> Config:

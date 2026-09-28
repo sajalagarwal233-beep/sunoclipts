@@ -12,11 +12,13 @@ This guide covers the recommended Docker setup, local development mode, and the 
 ### Required credentials
 
 - `ASSEMBLY_AI_API_KEY`
-- One LLM provider configuration:
-  - `OPENAI_API_KEY` with `LLM=openai:...`
-  - `GOOGLE_API_KEY` with `LLM=google-gla:...`
-  - `ANTHROPIC_API_KEY` with `LLM=anthropic:...`
-  - `LLM=ollama:...` with an available Ollama server, optionally `OLLAMA_BASE_URL`
+- Azure OpenAI configuration:
+  - `AZURE_OPENAI_API_KEY`
+  - `AZURE_OPENAI_ENDPOINT`
+  - `AZURE_OPENAI_API_VERSION`
+  - `AZURE_OPENAI_DEPLOYMENT`
+  - `LLM=azure-openai:...`
+- Or a local Ollama server with `LLM=ollama:...` and optionally `OLLAMA_BASE_URL`
 
 ### Optional credentials
 
@@ -47,8 +49,11 @@ Then edit `.env` and set at least:
 
 ```env
 ASSEMBLY_AI_API_KEY=your_assemblyai_key
-LLM=google-gla:gemini-3-flash-preview
-GOOGLE_API_KEY=your_google_key
+LLM=azure-openai:gpt-4.1-mini
+AZURE_OPENAI_API_KEY=your_azure_openai_api_key
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_API_VERSION=2025-04-01-preview
+AZURE_OPENAI_DEPLOYMENT=your-deployment-name
 BETTER_AUTH_SECRET=replace_this_for_real_use
 BACKEND_AUTH_SECRET=replace_this_if_using_hosted_mode
 

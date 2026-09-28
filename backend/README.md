@@ -112,7 +112,7 @@ YOUTUBE_DATA_API_KEY=your_youtube_data_api_key
 Notes:
 
 - `YOUTUBE_METADATA_PROVIDER=yt_dlp` preserves the previous metadata behavior.
-- If `YOUTUBE_DATA_API_KEY` is not set, the backend will try `GOOGLE_API_KEY` for YouTube metadata requests.
+- If `YOUTUBE_DATA_API_KEY` is not set, YouTube metadata requests may fail.
 - The selected metadata provider is the primary path only; the backend automatically falls back to the other provider if the first one fails.
 - `videos.list` costs 1 quota unit per request in the YouTube Data API.
 - The public API does not expose some `yt-dlp`-specific metadata fields like `format_id`, `resolution`, `fps`, or file size.

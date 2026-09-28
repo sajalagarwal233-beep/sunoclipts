@@ -29,14 +29,15 @@ In most cases, edit `.env` and then rebuild or restart the stack.
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `LLM` | Yes | Selects the provider and model, for example `google-gla:gemini-3-flash-preview` |
-| `OPENAI_API_KEY` | If using OpenAI | Required for `openai:*` models |
-| `GOOGLE_API_KEY` | If using Google | Required for `google-gla:*` models |
-| `ANTHROPIC_API_KEY` | If using Anthropic | Required for `anthropic:*` models |
+| `LLM` | Yes | Selects the provider and deployment, for example `azure-openai:gpt-4.1-mini` |
+| `AZURE_OPENAI_API_KEY` | If using Azure OpenAI | Required for `azure-openai:*` models |
+| `AZURE_OPENAI_ENDPOINT` | If using Azure OpenAI | Azure OpenAI resource endpoint |
+| `AZURE_OPENAI_API_VERSION` | If using Azure OpenAI | API version for Azure OpenAI requests |
+| `AZURE_OPENAI_DEPLOYMENT` | If using Azure OpenAI | Deployment name for `azure-openai:*` models |
 | `OLLAMA_BASE_URL` | If using Ollama remotely | Base URL for Ollama-compatible endpoints |
 | `OLLAMA_API_KEY` | Optional | Used for hosted Ollama providers such as Ollama Cloud |
 
-The backend can infer a default LLM from whichever API key is present, but setting `LLM` explicitly is safer and easier to debug.
+Setting `LLM` explicitly is safer and easier to debug.
 
 ## Core Application Settings
 
@@ -187,7 +188,7 @@ Behavior notes:
 
 - `yt_dlp` preserves the current metadata preflight behavior.
 - `youtube_data_api` uses YouTube Data API v3 `videos.list` as the primary metadata source.
-- If `YOUTUBE_DATA_API_KEY` is empty, the backend tries `GOOGLE_API_KEY` for YouTube Data API requests.
+- If `YOUTUBE_DATA_API_KEY` is empty, YouTube metadata requests may fail.
 - The configured provider is the primary path only; the backend automatically falls back to the alternate provider on misconfiguration, HTTP errors, empty API results, or parsing failures.
 - `videos.list` costs 1 quota unit per request.
 - Public `videos.list` metadata covers fields like title, description, channel title, published date, duration, thumbnails, views, and likes, but not download-oriented fields such as `format_id`, `resolution`, `fps`, or file size.
@@ -232,8 +233,11 @@ For basic self-hosted use:
 
 ```env
 ASSEMBLY_AI_API_KEY=your_key
-LLM=google-gla:gemini-3-flash-preview
-GOOGLE_API_KEY=your_key
+LLM=azure-openai:gpt-4.1-mini
+AZURE_OPENAI_API_KEY=your_key
+AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com
+AZURE_OPENAI_API_VERSION=2025-04-01-preview
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 BETTER_AUTH_SECRET=replace_me
 SELF_HOST=true
 ```

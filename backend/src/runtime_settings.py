@@ -15,9 +15,10 @@ logger = logging.getLogger(__name__)
 RUNTIME_SETTING_KEYS: tuple[str, ...] = (
     "ASSEMBLY_AI_API_KEY",
     "LLM",
-    "OPENAI_API_KEY",
-    "GOOGLE_API_KEY",
-    "ANTHROPIC_API_KEY",
+    "AZURE_OPENAI_API_KEY",
+    "AZURE_OPENAI_ENDPOINT",
+    "AZURE_OPENAI_API_VERSION",
+    "AZURE_OPENAI_DEPLOYMENT",
     "OLLAMA_BASE_URL",
     "OLLAMA_API_KEY",
     "YOUTUBE_DATA_API_KEY",
@@ -27,9 +28,10 @@ RUNTIME_SETTING_KEYS: tuple[str, ...] = (
 
 PROCESS_ENV_SETTING_KEYS = frozenset(
     {
-        "OPENAI_API_KEY",
-        "GOOGLE_API_KEY",
-        "ANTHROPIC_API_KEY",
+        "AZURE_OPENAI_API_KEY",
+        "AZURE_OPENAI_ENDPOINT",
+        "AZURE_OPENAI_API_VERSION",
+        "AZURE_OPENAI_DEPLOYMENT",
         "OLLAMA_BASE_URL",
         "OLLAMA_API_KEY",
     }

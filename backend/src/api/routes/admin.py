@@ -29,23 +29,28 @@ SETTING_METADATA = {
     },
     "LLM": {
         "label": "LLM model",
-        "description": "Provider and model, for example openai:gpt-5.2.",
+        "description": "Provider and deployment, for example azure-openai:gpt-4o.",
         "input_type": "text",
     },
-    "OPENAI_API_KEY": {
-        "label": "OpenAI API key",
-        "description": "Required for openai:* models.",
+    "AZURE_OPENAI_API_KEY": {
+        "label": "Azure OpenAI API key",
+        "description": "Required for azure-openai:* models.",
         "input_type": "password",
     },
-    "GOOGLE_API_KEY": {
-        "label": "Google API key",
-        "description": "Required for google-gla:* models and fallback YouTube metadata.",
-        "input_type": "password",
+    "AZURE_OPENAI_ENDPOINT": {
+        "label": "Azure OpenAI endpoint",
+        "description": "Azure OpenAI resource endpoint, for example https://<resource>.openai.azure.com.",
+        "input_type": "text",
     },
-    "ANTHROPIC_API_KEY": {
-        "label": "Anthropic API key",
-        "description": "Required for anthropic:* models.",
-        "input_type": "password",
+    "AZURE_OPENAI_API_VERSION": {
+        "label": "Azure OpenAI API version",
+        "description": "API version for Azure OpenAI requests.",
+        "input_type": "text",
+    },
+    "AZURE_OPENAI_DEPLOYMENT": {
+        "label": "Azure OpenAI deployment",
+        "description": "Deployment name to use for azure-openai:* models.",
+        "input_type": "text",
     },
     "OLLAMA_BASE_URL": {
         "label": "Ollama base URL",

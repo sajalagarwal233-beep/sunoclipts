@@ -24,7 +24,7 @@ export TEMP_DIR=/tmp/supoclip-local-media
 export BACKEND_AUTH_SECRET=local-test-backend-secret
 export SELF_HOST=true
 export YOUTUBE_DOWNLOAD_PROVIDER=yt_dlp YOUTUBE_METADATA_PROVIDER=yt_dlp
-export APIFY_API_TOKEN='' YOUTUBE_DATA_API_KEY='' GOOGLE_API_KEY=''
+export APIFY_API_TOKEN='' YOUTUBE_DATA_API_KEY=''
 export TRANSCRIPTION_PROVIDER=whisper WHISPER_MODEL=base
 export LLM=ollama:YOUR_INSTALLED_MODEL
 export OLLAMA_BASE_URL=http://127.0.0.1:11434/v1

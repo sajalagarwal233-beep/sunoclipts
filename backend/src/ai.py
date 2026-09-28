@@ -12,6 +12,10 @@ from pydantic_ai import Agent
 from pydantic_ai.models import Model
 from pydantic_ai.models.ollama import OllamaModel
 from pydantic_ai.providers.ollama import OllamaProvider
+try:
+    from pydantic_ai.providers.openai import OpenAIProvider
+except ImportError:
+    OpenAIProvider = None
 from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 from .config import Config, get_config
@@ -360,7 +364,7 @@ Find 2-5 compelling segments that would work well as standalone clips. Quality o
 _transcript_agent: Optional[Agent[None, TranscriptAnalysis]] = None
 _transcript_agent_signature: Optional[tuple[str | None, ...]] = None
 
-SUPPORTED_LLM_PROVIDERS = {"google", "google-gla", "openai", "anthropic", "ollama"}
+SUPPORTED_LLM_PROVIDERS = {"azure-openai", "ollama"}
 
 
 def _split_llm_name(model_name: str) -> tuple[str, str | None]:
@@ -378,32 +382,32 @@ def _get_missing_llm_key_error(model_name: str, runtime_config: Config) -> Optio
     if provider not in SUPPORTED_LLM_PROVIDERS:
         return (
             f"Unsupported LLM provider '{provider}'. "
-            "Use google-gla:*, openai:*, anthropic:*, or ollama:*."
+            "Use azure-openai:* or ollama:*."
         )
 
     if not provider_model_name:
         return (
-            "Selected LLM is missing a model name. "
-            "Use the format provider:model, for example ollama:gpt-oss:20b."
+            "Selected LLM is missing a deployment name. "
+            "Use the format azure-openai:<deployment>, for example azure-openai:gpt-4o."
         )
 
-    if provider in {"google", "google-gla"} and not runtime_config.google_api_key:
-        return (
-            "Selected LLM provider is Google, but GOOGLE_API_KEY is not set. "
-            "Set GOOGLE_API_KEY or set LLM to openai:* / anthropic:* / ollama:* with the matching API key."
-        )
-
-    if provider == "openai" and not runtime_config.openai_api_key:
-        return (
-            "Selected LLM provider is OpenAI, but OPENAI_API_KEY is not set. "
-            "Set OPENAI_API_KEY or choose another provider with a matching API key."
-        )
-
-    if provider == "anthropic" and not runtime_config.anthropic_api_key:
-        return (
-            "Selected LLM provider is Anthropic, but ANTHROPIC_API_KEY is not set. "
-            "Set ANTHROPIC_API_KEY or choose another provider with a matching API key."
-        )
+    if provider == "azure-openai":
+        if not runtime_config.azure_api_key:
+            return (
+                "Selected LLM provider is Azure OpenAI, but AZURE_OPENAI_API_KEY is not set. "
+                "Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT, "
+                "or set LLM to ollama:*."
+            )
+        if not runtime_config.azure_endpoint:
+            return (
+                "Selected LLM provider is Azure OpenAI, but AZURE_OPENAI_ENDPOINT is not set. "
+                "Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT."
+            )
+        if not runtime_config.azure_deployment:
+            return (
+                "Selected LLM provider is Azure OpenAI, but AZURE_OPENAI_DEPLOYMENT is not set. "
+                "Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and AZURE_OPENAI_DEPLOYMENT."
+            )
 
     if provider == "ollama":
         # Ollama can run locally without an API key. OLLAMA_BASE_URL/OLLAMA_API_KEY
@@ -415,21 +419,50 @@ def _get_missing_llm_key_error(model_name: str, runtime_config: Config) -> Optio
 
 def _build_transcript_model(runtime_config: Config) -> Model | str:
     provider, provider_model_name = _split_llm_name(runtime_config.llm)
-    if provider != "ollama":
-        return runtime_config.llm
-
-    if not provider_model_name:
-        raise RuntimeError(
-            "Selected LLM provider is Ollama, but no model name was provided. "
-            "Use the format ollama:<model>, for example ollama:gpt-oss:20b."
+    if provider == "ollama":
+        if not provider_model_name:
+            raise RuntimeError(
+                "Selected LLM provider is Ollama, but no model name was provided. "
+                "Use the format ollama:<model>, for example ollama:gpt-oss:20b."
+            )
+        return OllamaModel(
+            provider_model_name,
+            provider=OllamaProvider(
+                base_url=runtime_config.resolve_ollama_base_url(),
+                api_key=runtime_config.ollama_api_key,
+            ),
         )
 
-    return OllamaModel(
-        provider_model_name,
-        provider=OllamaProvider(
-            base_url=runtime_config.resolve_ollama_base_url(),
-            api_key=runtime_config.ollama_api_key,
-        ),
+    if provider == "azure-openai":
+        if not provider_model_name:
+            raise RuntimeError(
+                "Selected LLM provider is Azure OpenAI, but no deployment name was provided. "
+                "Use the format azure-openai:<deployment>, for example azure-openai:gpt-4o."
+            )
+        if not runtime_config.azure_endpoint:
+            raise RuntimeError(
+                "Selected LLM provider is Azure OpenAI, but AZURE_OPENAI_ENDPOINT is not set."
+            )
+        if not runtime_config.azure_api_key:
+            raise RuntimeError(
+                "Selected LLM provider is Azure OpenAI, but AZURE_OPENAI_API_KEY is not set."
+            )
+        if OpenAIProvider is None:
+            raise RuntimeError(
+                "Azure OpenAI provider is selected, but the OpenAI-compatible provider helper is unavailable. "
+                "Install/upgrade pydantic-ai so Azure can be reached through the OpenAI provider."
+            )
+        base_url = runtime_config.azure_endpoint.rstrip("/")
+        if not base_url.endswith("/responses") and not base_url.endswith("/chat/completions"):
+            base_url = f"{base_url}/openai/v1"
+        return OpenAIProvider(
+            base_url=base_url,
+            api_key=runtime_config.azure_api_key,
+            api_version=runtime_config.azure_api_version,
+        )
+
+    raise RuntimeError(
+        f"Unsupported LLM provider '{provider}'. Use azure-openai:* or ollama:*."
     )
 
 
@@ -440,9 +473,10 @@ def get_transcript_agent() -> Agent[None, TranscriptAnalysis]:
     provider, _ = _split_llm_name(runtime_config.llm)
     signature = (
         runtime_config.llm,
-        runtime_config.openai_api_key,
-        runtime_config.google_api_key,
-        runtime_config.anthropic_api_key,
+        runtime_config.azure_api_key,
+        runtime_config.azure_endpoint,
+        runtime_config.azure_api_version,
+        runtime_config.azure_deployment,
         runtime_config.ollama_base_url,
         runtime_config.ollama_api_key,
     )

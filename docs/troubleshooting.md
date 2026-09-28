@@ -123,9 +123,7 @@ Verify:
 
 ### Provider mismatch examples
 
-- `LLM=openai:...` requires `OPENAI_API_KEY`
-- `LLM=google-gla:...` requires `GOOGLE_API_KEY`
-- `LLM=anthropic:...` requires `ANTHROPIC_API_KEY`
+- `LLM=azure-openai:...` requires `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, and `AZURE_OPENAI_DEPLOYMENT`
 - `LLM=ollama:...` requires a reachable Ollama endpoint
 
 ## YouTube Downloads Fail
